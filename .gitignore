@@ -1,0 +1,27 @@
+# Python
+venv/
+__pycache__/
+
+# Model
+model/*
+!model/.gitkeep
+
+*.bin
+*.pt
+*.pth
+*.safetensors
+
+# Dataset
+*.csv
+*.xlsx
+
+# Training outputs
+logs/
+results/
+checkpoints/
+
+# VSCode
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/

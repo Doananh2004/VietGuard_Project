@@ -1,0 +1,51 @@
+# =========================
+# Core Deep Learning
+# =========================
+torch
+transformers
+datasets
+accelerate
+
+# =========================
+# Machine Learning
+# =========================
+scikit-learn
+numpy
+pandas
+scipy
+
+# =========================
+# NLP
+# =========================
+underthesea
+gensim
+
+# =========================
+# Flask Web App
+# =========================
+flask
+flask-ngrok
+
+# =========================
+# Visualization / EDA
+# =========================
+matplotlib
+seaborn
+wordcloud
+
+# =========================
+# Utilities
+# =========================
+tqdm
+regex
+
+# =========================
+# Translation (nếu dùng)
+# =========================
+deep-translator
+
+# =========================
+# Jupyter / Colab
+# =========================
+notebook
+ipykernel
