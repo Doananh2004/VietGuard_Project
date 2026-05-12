@@ -7,11 +7,12 @@
   </head>
   <body>
     <div class="container">
-      <h1>📰 Fake News Detection (PhoBERT)</h1>
+      <h1>📰 Nhận diện tin giả</h1>
 
       <form method="POST">
         <textarea name="text" placeholder="Nhập nội dung tin tức..." required>
-{{ original_text }}</textarea>
+{{ original_text }}</textarea
+        >
         <button type="submit" id="btn-predict">Dự đoán</button>
       </form>
 
@@ -24,7 +25,7 @@
         </div>
 
         <div class="confidence-section">
-          <div>Độ tin cậy: {{ result.confidence }}%</div>
+          <div>Độ chính xác: {{ result.confidence }}%</div>
           <div class="progress-bar-bg">
             <div
               class="progress-bar-fill {% if 'Tin giả' in result.label %}fake{% else %}real{% endif %}"
