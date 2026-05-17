@@ -146,8 +146,23 @@ def predict_text(text):
 # ---------------------------------------------------------
 # ROUTES
 # ---------------------------------------------------------
-@app.route("/", methods=["GET", "POST"])
+
+# =========================
+# Home Page
+# =========================
+@app.route("/")
 def index():
+    return render_template("index.html")
+
+# =========================
+# About Page
+# =========================
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+@app.route("/predict", methods=["GET", "POST"])
+def predict():
     result = None
     error = None
     original_text = ""
@@ -163,7 +178,7 @@ def index():
             if not result:
                 error = "❌ Lỗi xử lý — vui lòng thử lại."
 
-    return render_template("index.html", result=result, error=error, original_text=original_text)
+    return render_template("predict.html", result=result, error=error, original_text=original_text)
 
 @app.route("/feedback", methods=["POST"])
 def feedback():

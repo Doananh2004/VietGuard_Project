@@ -1,101 +1,15 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>VietGuard — Phát hiện tin giả</title>
-    <link rel="stylesheet" href="/static/style.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h1>📰 Nhận diện tin giả</h1>
+{% extends 'layout.html' %} {% block content %}
 
-      <form method="POST">
-        <textarea name="text" placeholder="Nhập nội dung tin tức..." required>
-{{ original_text }}</textarea
-        >
-        <button type="submit" id="btn-predict">Dự đoán</button>
-      </form>
+<section class="hero">
+  <div class="hero-content">
+    <h1>VietGuard</h1>
 
-      {% if error %}
-      <div class="error-msg">{{ error }}</div>
-      {% endif %} {% if result %}
-      <div class="result-box">
-        <div class="result-label">
-          Kết quả: <strong>{{ result.label }}</strong>
-        </div>
+    <p>
+      Hệ thống phát hiện tin giả tiếng Việt sử dụng Deep Learning và PhoBERT.
+    </p>
 
-        <div class="confidence-section">
-          <div>Độ chính xác: {{ result.confidence }}%</div>
-          <div class="progress-bar-bg">
-            <div
-              class="progress-bar-fill {% if 'Tin giả' in result.label %}fake{% else %}real{% endif %}"
-              style="width: {{ result.confidence }}%"
-            ></div>
-          </div>
-        </div>
+    <a href="/predict" class="btn"> Bắt Đầu Kiểm Tra </a>
+  </div>
+</section>
 
-        <div class="feedback-section" id="feedback-section">
-          <p>Dự đoán này có đúng không?</p>
-          <button class="btn-feedback correct" onclick="sendFeedback('Đúng')">
-            👍 Đúng
-          </button>
-          <button class="btn-feedback wrong" onclick="sendFeedback('Sai')">
-            👎 Sai
-          </button>
-        </div>
-
-        {% if result.explanation %}
-        <div class="explanation-section">
-          <h4>Phân tích từ khóa (Explainable AI)</h4>
-          <p>Các từ ảnh hưởng mạnh nhất đến quyết định của AI:</p>
-          <div class="badges">
-            {% for item in result.explanation %}
-            <span
-              class="badge {% if item.type == 'fake' %}badge-fake{% else %}badge-real{% endif %}"
-              title="Trọng số: {{ item.weight }}"
-            >
-              {{ item.word }}
-            </span>
-            {% endfor %}
-          </div>
-          <div class="explanation-legend">
-            <span class="legend-item"
-              ><span class="color-box fake-box"></span> Tăng % Tin giả</span
-            >
-            <span class="legend-item"
-              ><span class="color-box real-box"></span> Tăng % Tin thật</span
-            >
-          </div>
-        </div>
-        {% endif %}
-      </div>
-
-      <script>
-        function sendFeedback(feedbackVal) {
-            const data = {
-                text: {{ result.raw_text | tojson }},
-                label: "{{ result.label }}",
-                confidence: {{ result.confidence }},
-                feedback: feedbackVal
-            };
-
-            fetch('/feedback', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('feedback-section').innerHTML = "<p>✅ Cảm ơn bạn đã đóng góp!</p>";
-                } else {
-                    alert("Có lỗi xảy ra: " + data.message);
-                }
-            })
-            .catch(err => alert("Lỗi kết nối!"));
-        }
-      </script>
-      {% endif %}
-    </div>
-  </body>
-</html>
+{% endblock %}
