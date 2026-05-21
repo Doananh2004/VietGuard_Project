@@ -1,101 +1,583 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>VietGuard — Phát hiện tin giả</title>
-    <link rel="stylesheet" href="/static/style.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h1>📰 Nhận diện tin giả</h1>
+{% extends 'layout.html' %} {% set active_page = 'predict' %} {% block title
+%}Kiểm tra tin tức{% endblock %} {% block topbar_page %}Kiểm tra{% endblock %}
+{% block topbar_sub %}Phân tích tin tức bằng AI{% endblock %} {% block content
+%}
+<div class="predict-layout fade-up">
+  <!-- LEFT COLUMN: Input + Result -->
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <!-- Input Card -->
+    <form method="POST" enctype="multipart/form-data" id="predictForm">
+      <input
+        type="hidden"
+        name="source_type"
+        id="sourceTypeInput"
+        value="{{ source_type }}"
+      />
 
-      <form method="POST">
-        <textarea name="text" placeholder="Nhập nội dung tin tức..." required>
-{{ original_text }}</textarea
+      <div class="input-area-card">
+        <!-- Tabs -->
+        <div class="input-mode-tabs">
+          <button
+            type="button"
+            class="mode-tab {% if source_type != 'url' and source_type != 'file' %}active{% endif %}"
+            onclick="switchMode('text', this)"
+            id="tab-text"
+          >
+            ✎ Văn bản
+          </button>
+          <button
+            type="button"
+            class="mode-tab {% if source_type == 'url' %}active{% endif %}"
+            onclick="switchMode('url', this)"
+            id="tab-url"
+          >
+            ⊕ URL
+          </button>
+          <button
+            type="button"
+            class="mode-tab {% if source_type == 'file' %}active{% endif %}"
+            onclick="switchMode('file', this)"
+            id="tab-file"
+          >
+            ↑ File
+          </button>
+        </div>
+
+        <!-- TAB: Text -->
+        <div
+          id="mode-text"
+          {%
+          if
+          source_type=""
+          ="url"
+          or
+          source_type=""
+          ="file"
+          %}style="display:none;"
+          {%
+          endif
+          %}
         >
-        <button type="submit" id="btn-predict">Dự đoán</button>
-      </form>
-
-      {% if error %}
-      <div class="error-msg">{{ error }}</div>
-      {% endif %} {% if result %}
-      <div class="result-box">
-        <div class="result-label">
-          Kết quả: <strong>{{ result.label }}</strong>
+          <textarea
+            class="article-ta"
+            name="text"
+            id="articleText"
+            placeholder="Dán toàn bộ nội dung bài báo cần kiểm tra vào đây..."
+            oninput="
+              document.getElementById('cc').textContent = this.value.length
+            "
+          >
+{{ original_text }}</textarea
+          >
+          <div class="input-footer">
+            <span class="char-info"
+              ><span id="cc">{{ original_text|length }}</span> ký tự · tối đa
+              ~5,000</span
+            >
+            <button type="submit" class="tb-btn primary" onclick="showLoader()">
+              Phân tích →
+            </button>
+          </div>
         </div>
 
-        <div class="confidence-section">
-          <div>Độ chính xác: {{ result.confidence }}%</div>
-          <div class="progress-bar-bg">
+        <!-- TAB: URL -->
+        <div
+          id="mode-url"
+          {%
+          if
+          source_type
+          !="url"
+          %}style="display:none;"
+          {%
+          endif
+          %}
+        >
+          <div class="url-row">
+            <span class="url-prefix">URL →</span>
+            <input
+              class="url-in"
+              type="text"
+              name="url"
+              id="urlInput"
+              placeholder="https://vnexpress.net/bai-bao..."
+              value="{{ request.form.get('url', '') }}"
+            />
+          </div>
+          <div class="input-footer">
+            <span class="char-info"
+              >Hỗ trợ: VnExpress, Tuổi Trẻ, Thanh Niên, Dân Trí...</span
+            >
+            <button type="submit" class="tb-btn primary" onclick="showLoader()">
+              Crawl &amp; Phân tích →
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB: File -->
+        <div
+          id="mode-file"
+          {%
+          if
+          source_type
+          !="file"
+          %}style="display:none;"
+          {%
+          endif
+          %}
+        >
+          <div
+            class="upload-zone"
+            onclick="document.getElementById('fileInput').click()"
+          >
+            <div class="upload-icon">↑</div>
+            <div class="upload-text">
+              Kéo thả file vào đây hoặc <span>chọn file</span>
+            </div>
             <div
-              class="progress-bar-fill {% if 'Tin giả' in result.label %}fake{% else %}real{% endif %}"
-              style="width: {{ result.confidence }}%"
-            ></div>
+              style="
+                font-size: 11px;
+                color: var(--text3);
+                margin-top: 4px;
+                font-family: var(--mono);
+              "
+            >
+              .txt · .docx · tối đa 2MB
+            </div>
+            <input
+              type="file"
+              name="article_file"
+              id="fileInput"
+              accept=".txt,.docx"
+              style="display: none"
+              onchange="onFileSelected(this)"
+            />
+          </div>
+          <div class="input-footer">
+            <span class="char-info" id="fileLabel">Chưa chọn file</span>
+            <button type="submit" class="tb-btn primary" onclick="showLoader()">
+              Phân tích →
+            </button>
           </div>
         </div>
+      </div>
+    </form>
 
-        <div class="feedback-section" id="feedback-section">
-          <p>Dự đoán này có đúng không?</p>
-          <button class="btn-feedback correct" onclick="sendFeedback('Đúng')">
-            👍 Đúng
-          </button>
-          <button class="btn-feedback wrong" onclick="sendFeedback('Sai')">
-            👎 Sai
-          </button>
-        </div>
+    <!-- Error Message -->
+    {% if error %}
+    <div class="flash-msg fade-up"><span>⚠</span> {{ error }}</div>
+    {% endif %}
 
-        {% if result.explanation %}
-        <div class="explanation-section">
-          <h4>Phân tích từ khóa (Explainable AI)</h4>
-          <p>Các từ ảnh hưởng mạnh nhất đến quyết định của AI:</p>
-          <div class="badges">
-            {% for item in result.explanation %}
-            <span
-              class="badge {% if item.type == 'fake' %}badge-fake{% else %}badge-real{% endif %}"
-              title="Trọng số: {{ item.weight }}"
-            >
-              {{ item.word }}
-            </span>
-            {% endfor %}
-          </div>
-          <div class="explanation-legend">
-            <span class="legend-item"
-              ><span class="color-box fake-box"></span> Tăng % Tin giả</span
-            >
-            <span class="legend-item"
-              ><span class="color-box real-box"></span> Tăng % Tin thật</span
-            >
-          </div>
+    <!-- Result Card -->
+    {% if result %}
+    <div class="result-card-dash fade-up-2" id="resultCard">
+      <!-- Header: verdict + gauge -->
+      <div class="result-header-dash">
+        <div
+          class="result-verdict-big {{ 'fake' if result.is_fake else 'real' }}"
+          id="rv"
+        >
+          <span class="rv-dot"></span>
+          <span>{{ result.label }}</span>
         </div>
-        {% endif %}
+        <div class="gauge-mini">
+          <div class="gauge-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle
+                cx="32"
+                cy="32"
+                r="26"
+                fill="none"
+                stroke="#20243060"
+                stroke-width="5"
+              />
+              <circle
+                cx="32"
+                cy="32"
+                r="26"
+                fill="none"
+                stroke="{{ 'var(--fake)' if result.is_fake else 'var(--real)' }}"
+                stroke-width="5"
+                stroke-linecap="round"
+                id="gArc"
+                stroke-dasharray="163.36"
+                stroke-dashoffset="{{ 163.36 - (result.confidence / 100) * 163.36 }}"
+              />
+            </svg>
+            <div class="gauge-ring-num">{{ result.confidence }}%</div>
+          </div>
+          <div class="gauge-mini-label">Confidence</div>
+        </div>
       </div>
 
-      <script>
-        function sendFeedback(feedbackVal) {
-            const data = {
-                text: {{ result.raw_text | tojson }},
-                label: "{{ result.label }}",
-                confidence: {{ result.confidence }},
-                feedback: feedbackVal
-            };
-
-            fetch('/feedback', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('feedback-section').innerHTML = "<p>✅ Cảm ơn bạn đã đóng góp!</p>";
-                } else {
-                    alert("Có lỗi xảy ra: " + data.message);
-                }
-            })
-            .catch(err => alert("Lỗi kết nối!"));
-        }
-      </script>
+      <!-- Inline Highlight Text -->
+      {% if result.explanation %}
+      <div class="hl-text-box" id="hlText">
+        <span id="rawTextHolder" style="display: none"
+          >{{ result.raw_text[:800] | e }}</span
+        >
+        <div id="inlineHighlight"></div>
+      </div>
       {% endif %}
+
+      <!-- LIME Features -->
+      <div class="card-head" style="border-top: 1px solid var(--border)">
+        <div class="card-title" style="font-size: 12px">
+          Đặc trưng LIME — từ ảnh hưởng quyết định
+        </div>
+        <div
+          style="
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            font-family: var(--mono);
+          "
+        >
+          <span><span style="color: var(--fake)">■</span> Tin giả</span>
+          <span><span style="color: var(--real)">■</span> Tin thật</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="lime-list">
+          {% for item in result.explanation %} {% set pct = [(item.weight *
+          300)|int, 100]|min %}
+          <div class="lime-row">
+            <span class="lime-word">{{ item.word }}</span>
+            <div class="lime-track">
+              <div
+                class="lime-fill {{ item.type }}"
+                style="width:{{ pct }}%"
+              ></div>
+            </div>
+            <span class="lime-score {{ item.type }}">
+              {{ '+' if item.type == 'real' else '−' }}{{ item.weight }}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Feedback Row -->
+      <div class="fb-row-dash" id="feedbackRow">
+        <span class="fb-label-dash">Phản hồi:</span>
+        <button class="fb-btn-dash" id="fb1" onclick="sendFeedback('Đúng')">
+          ✓ Chính xác
+        </button>
+        <button class="fb-btn-dash" id="fb2" onclick="sendFeedback('Sai')">
+          ✗ Sai
+        </button>
+        <a
+          href="/history"
+          class="tb-btn ghost"
+          style="font-size: 11px; padding: 5px 10px; margin-left: auto"
+        >
+          Xem lịch sử →
+        </a>
+      </div>
     </div>
-  </body>
-</html>
+    {% endif %}
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <!-- Recent checks -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Kiểm tra gần đây</div>
+      </div>
+      <div class="card-body no-pad" id="sidebarHistory">
+        <div
+          style="
+            padding: 20px 18px;
+            text-align: center;
+            color: var(--text3);
+            font-size: 12px;
+          "
+        >
+          Đang tải...
+        </div>
+      </div>
+    </div>
+
+    <!-- Guide -->
+    <div class="card">
+      <div class="card-head"><div class="card-title">Hướng dẫn</div></div>
+      <div class="card-body">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              font-size: 12px;
+              color: var(--text3);
+              line-height: 1.5;
+            "
+          >
+            <span
+              style="
+                font-family: var(--mono);
+                color: var(--accent);
+                flex-shrink: 0;
+              "
+              >01</span
+            >
+            Dán toàn bộ nội dung bài báo để kết quả chính xác nhất.
+          </div>
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              font-size: 12px;
+              color: var(--text3);
+              line-height: 1.5;
+            "
+          >
+            <span
+              style="
+                font-family: var(--mono);
+                color: var(--accent);
+                flex-shrink: 0;
+              "
+              >02</span
+            >
+            Hoặc nhập URL để hệ thống tự động crawl nội dung.
+          </div>
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              font-size: 12px;
+              color: var(--text3);
+              line-height: 1.5;
+            "
+          >
+            <span
+              style="
+                font-family: var(--mono);
+                color: var(--accent);
+                flex-shrink: 0;
+              "
+              >03</span
+            >
+            Từ <span style="color: var(--fake)">đỏ</span> = dấu hiệu tin giả ·
+            từ <span style="color: var(--real)">xanh</span> = tin thật.
+          </div>
+          <div
+            style="
+              display: flex;
+              gap: 10px;
+              font-size: 12px;
+              color: var(--text3);
+              line-height: 1.5;
+            "
+          >
+            <span
+              style="
+                font-family: var(--mono);
+                color: var(--accent);
+                flex-shrink: 0;
+              "
+              >04</span
+            >
+            Phản hồi của bạn giúp cải thiện mô hình AI theo thời gian.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confidence Legend -->
+    <div class="card">
+      <div class="card-head"><div class="card-title">Độ tin cậy</div></div>
+      <div class="card-body">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+            "
+          >
+            <span style="font-family: var(--mono); color: var(--real)"
+              >90-100%</span
+            >
+            <span style="color: var(--text3)">Rất chắc chắn</span>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+            "
+          >
+            <span style="font-family: var(--mono); color: var(--real)"
+              >75-90%</span
+            >
+            <span style="color: var(--text3)">Khá chắc chắn</span>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+            "
+          >
+            <span style="font-family: var(--mono); color: var(--warn)"
+              >60-75%</span
+            >
+            <span style="color: var(--text3)">Cần xem xét thêm</span>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+            "
+          >
+            <span style="font-family: var(--mono); color: var(--fake)"
+              >&lt;60%</span
+            >
+            <span style="color: var(--text3)">Không chắc chắn</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  // ── Tab switching ──
+  function switchMode(m, btn) {
+    document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ['text','url','file'].forEach(id => {
+      document.getElementById('mode-'+id).style.display = id === m ? '' : 'none';
+    });
+    document.getElementById('sourceTypeInput').value = m;
+  }
+
+  // ── File selection display ──
+  function onFileSelected(input) {
+    if (input.files && input.files[0]) {
+      document.getElementById('fileLabel').textContent = input.files[0].name + ' (' + Math.round(input.files[0].size/1024) + ' KB)';
+    }
+  }
+
+  // ── Show loader ──
+  function showLoader() {
+    const form = document.getElementById('predictForm');
+    // Validate before submitting
+    const src = document.getElementById('sourceTypeInput').value;
+    if (src === 'text' && !document.getElementById('articleText').value.trim()) return;
+    if (src === 'url' && !document.getElementById('urlInput').value.trim()) return;
+    document.getElementById('loadingScreen').classList.add('show');
+  }
+
+  // ── Inline highlight rendering ──
+  {% if result and result.explanation %}
+  const explanationWords = [
+    {% for item in result.explanation %}
+    { word: {{ item.word | tojson }}, type: {{ item.type | tojson }}, weight: {{ item.weight }} },
+    {% endfor %}
+  ];
+
+  function buildInlineHighlight(text, words) {
+    // Sort by weight desc so stronger highlights take precedence
+    const sorted = [...words].sort((a,b) => b.weight - a.weight);
+    let html = text;
+
+    // Escape HTML first
+    html = html.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    // Replace each word with highlighted span (word-boundary aware)
+    sorted.forEach(item => {
+      const escaped = item.word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      const cls = item.type === 'fake' ? 'hl-f' + (item.weight > 0.3 ? ' s' : '') : 'hl-r' + (item.weight > 0.3 ? ' s' : '');
+      const re = new RegExp('(?<![\\w])('+escaped+')(?![\\w])', 'gi');
+      html = html.replace(re, `<span class="${cls}">$1</span>`);
+    });
+
+    return html;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const rawText = document.getElementById('rawTextHolder').textContent;
+    document.getElementById('inlineHighlight').innerHTML = buildInlineHighlight(rawText, explanationWords);
+  });
+  {% endif %}
+
+  // ── Gauge animation on load ──
+  {% if result %}
+  document.addEventListener('DOMContentLoaded', () => {
+    const arc = document.getElementById('gArc');
+    if (arc) {
+      const circ = 163.36;
+      const conf = {{ result.confidence }};
+      const finalOffset = circ - (conf/100)*circ;
+      arc.style.strokeDashoffset = circ;
+      setTimeout(() => {
+        arc.style.transition = 'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)';
+        arc.style.strokeDashoffset = finalOffset;
+      }, 100);
+    }
+  });
+  {% endif %}
+
+  // ── Feedback ──
+  {% if result %}
+  function sendFeedback(feedbackVal) {
+    const data = {
+      text: {{ result.raw_text | tojson }},
+      label: {{ result.label | tojson }},
+      confidence: {{ result.confidence }},
+      feedback: feedbackVal
+    };
+    fetch('/feedback', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        document.getElementById('fb1').className = 'fb-btn-dash' + (feedbackVal==='Đúng' ? ' active-correct' : '');
+        document.getElementById('fb2').className = 'fb-btn-dash' + (feedbackVal==='Sai' ? ' active-wrong' : '');
+        // Show thank you message briefly
+        const row = document.getElementById('feedbackRow');
+        const msg = document.createElement('span');
+        msg.style = 'font-family:var(--mono);font-size:11px;color:var(--real);';
+        msg.textContent = '✓ Cảm ơn phản hồi!';
+        row.appendChild(msg);
+        setTimeout(() => msg.remove(), 3000);
+      }
+    })
+    .catch(() => {});
+  }
+  {% endif %}
+
+  // ── Sidebar History ──
+  fetch('/history?page=1')
+    .then(r => r.text())
+    .then(html => {
+      // Just show link to history page
+    });
+
+  // Load sidebar history via simple fetch of recent items
+  (async () => {
+    try {
+      const resp = await fetch('/api/recent');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const el = document.getElementById('sidebarHistory');
+      if (!data.length) {
+        el.innerHTML = '<div style="padding:20px 18px;text-align:center;color:var(--text3);font-size:12px;">Chưa có lịch sử</div>';
+        return;
+      }
+      el.innerHTML = data.map(d => `
+        <div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.1s;"
+             onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background=''">
+          <span style="flex:1;font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.text}</span>
+          <span class="verdict-pill ${d.label}" style="font-size:10px;">${d.label==='fake'?'Giả':'Thật'}</span>
+        </div>`).join('');
+    } catch(e) {}
+  })();
+</script>
+{% endblock %}
