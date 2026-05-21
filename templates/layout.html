@@ -3,22 +3,117 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>VietGuard</title>
-
-    <link rel="stylesheet" href="/static/layout.css" />
+    <title>
+      {% block title %}VietGuard{% endblock %} — Phát hiện tin giả tiếng Việt
+    </title>
+    <meta
+      name="description"
+      content="VietGuard — Hệ thống AI phát hiện tin giả tiếng Việt sử dụng PhoBERT và LIME Explainable AI."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    {% block head %}{% endblock %}
   </head>
   <body>
-    <nav class="navbar">
-      <div class="logo">VietGuard</div>
+    <!-- LOADING OVERLAY -->
+    <div class="loading-screen" id="loadingScreen">
+      <div class="loader-ring"></div>
+      <div class="loader-text">đang phân tích văn bản...</div>
+    </div>
 
-      <ul class="nav-links">
-        <li><a href="/">Trang Chủ</a></li>
-        <li><a href="/predict">Dự Đoán</a></li>
-        <li><a href="/about">About</a></li>
-      </ul>
-    </nav>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <a href="/" class="sb-logo">
+        <div class="sb-logo-icon">VG</div>
+        <div>
+          <div class="sb-logo-name">VietGuard</div>
+          <div class="sb-logo-ver">v2.0.0</div>
+        </div>
+      </a>
 
-    <main>{% block content %} {% endblock %}</main>
+      <div class="sb-section">
+        <div class="sb-section-label">Menu</div>
+        <a
+          class="sb-item {% if active_page == 'dashboard' %}active{% endif %}"
+          href="/"
+        >
+          <span class="sb-icon">⊞</span> Dashboard
+        </a>
+        <a
+          class="sb-item {% if active_page == 'predict' %}active{% endif %}"
+          href="/predict"
+        >
+          <span class="sb-icon">◎</span> Kiểm tra tin tức
+          <span class="sb-badge blue">Mới</span>
+        </a>
+        <a
+          class="sb-item {% if active_page == 'history' %}active{% endif %}"
+          href="/history"
+        >
+          <span class="sb-icon">☰</span> Lịch sử
+        </a>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-section-label">Hệ thống</div>
+        <a
+          class="sb-item {% if active_page == 'about' %}active{% endif %}"
+          href="/about"
+        >
+          <span class="sb-icon">◇</span> Về dự án
+        </a>
+      </div>
+
+      <div class="sb-bottom">
+        <div class="sb-model-card">
+          <div class="sb-model-label">Core Model</div>
+          <div class="sb-model-name">PhoBERT-base</div>
+          <div class="sb-model-status">
+            <div class="sb-status-dot"></div>
+            <span class="sb-status-text">Online</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <span class="topbar-page"
+            >{% block topbar_page %}VietGuard{% endblock %}</span
+          >
+          <span class="topbar-sep">/</span>
+          <span class="topbar-sub">{% block topbar_sub %}{% endblock %}</span>
+        </div>
+        <div class="topbar-right">
+          <span class="topbar-time" id="clock">--:--:--</span>
+          <a href="/predict" class="tb-btn primary">+ Kiểm tra mới</a>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content">{% block content %}{% endblock %}</div>
+    </div>
+
+    <script>
+      // Clock
+      function tick() {
+        document.getElementById("clock").textContent =
+          new Date().toLocaleTimeString("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+      }
+      tick();
+      setInterval(tick, 1000);
+    </script>
+    {% block scripts %}{% endblock %}
   </body>
 </html>

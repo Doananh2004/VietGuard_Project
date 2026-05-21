@@ -1,0 +1,2307 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VietGuard Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --bg: #0a0b0e;
+        --bg1: #0f1117;
+        --bg2: #14161d;
+        --bg3: #1a1d27;
+        --bg4: #202430;
+        --border: rgba(255, 255, 255, 0.06);
+        --border2: rgba(255, 255, 255, 0.1);
+        --text: #e8eaf0;
+        --text2: #8b8fa8;
+        --text3: #555870;
+        --accent: #4f7cff;
+        --accent2: #2d54cc;
+        --fake: #ff4d6a;
+        --fake-dim: rgba(255, 77, 106, 0.12);
+        --real: #00d68f;
+        --real-dim: rgba(0, 214, 143, 0.1);
+        --warn: #ffb547;
+        --warn-dim: rgba(255, 181, 71, 0.1);
+        --mono: "Geist Mono", monospace;
+        --sans: "Geist", sans-serif;
+        --sidebar-w: 220px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family: var(--sans);
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        min-height: 100vh;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      /* ── SIDEBAR ── */
+      .sidebar {
+        width: var(--sidebar-w);
+        background: var(--bg1);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      .sb-logo {
+        padding: 20px 20px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .sb-logo-icon {
+        width: 30px;
+        height: 30px;
+        background: var(--accent);
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+        flex-shrink: 0;
+      }
+      .sb-logo-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        letter-spacing: -0.02em;
+      }
+      .sb-logo-ver {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text3);
+        margin-top: 1px;
+      }
+
+      .sb-section {
+        padding: 16px 12px 8px;
+      }
+      .sb-section-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text3);
+        padding: 0 8px;
+        margin-bottom: 4px;
+      }
+      .sb-item {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 8px 10px;
+        border-radius: 7px;
+        cursor: pointer;
+        color: var(--text2);
+        font-size: 13px;
+        font-weight: 400;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        user-select: none;
+        margin-bottom: 1px;
+        text-decoration: none;
+      }
+      .sb-item:hover {
+        background: var(--bg3);
+        color: var(--text);
+      }
+      .sb-item.active {
+        background: rgba(79, 124, 255, 0.12);
+        color: var(--accent);
+        font-weight: 500;
+      }
+      .sb-icon {
+        width: 16px;
+        height: 16px;
+        opacity: 0.7;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .sb-item.active .sb-icon {
+        opacity: 1;
+      }
+      .sb-badge {
+        margin-left: auto;
+        background: var(--fake-dim);
+        color: var(--fake);
+        font-family: var(--mono);
+        font-size: 10px;
+        padding: 1px 6px;
+        border-radius: 4px;
+      }
+      .sb-badge.blue {
+        background: rgba(79, 124, 255, 0.15);
+        color: var(--accent);
+      }
+
+      .sb-bottom {
+        margin-top: auto;
+        padding: 12px;
+        border-top: 1px solid var(--border);
+      }
+      .sb-model-card {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      .sb-model-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text3);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .sb-model-name {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .sb-model-status {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 5px;
+      }
+      .sb-status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--real);
+        animation: pulse 2s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+      .sb-status-text {
+        font-size: 11px;
+        color: var(--real);
+        font-family: var(--mono);
+      }
+
+      /* ── MAIN ── */
+      .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow-y: auto;
+      }
+
+      /* ── TOPBAR ── */
+      .topbar {
+        background: var(--bg1);
+        border-bottom: 1px solid var(--border);
+        padding: 0 28px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .topbar-page {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .topbar-sep {
+        color: var(--text3);
+        font-size: 14px;
+      }
+      .topbar-sub {
+        font-size: 13px;
+        color: var(--text2);
+      }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .tb-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: background 0.15s;
+      }
+      .tb-btn.ghost {
+        background: transparent;
+        color: var(--text2);
+        border: 1px solid var(--border2);
+      }
+      .tb-btn.ghost:hover {
+        background: var(--bg3);
+        color: var(--text);
+      }
+      .tb-btn.primary {
+        background: var(--accent);
+        color: white;
+      }
+      .tb-btn.primary:hover {
+        background: var(--accent2);
+      }
+      .topbar-time {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text3);
+      }
+
+      /* ── CONTENT ── */
+      .content {
+        padding: 24px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* page sections */
+      .pg {
+        display: none;
+      }
+      .pg.active {
+        display: contents;
+      }
+
+      /* ── METRIC CARDS ── */
+      .metrics-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+      .metric-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px 18px;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.2s;
+      }
+      .metric-card:hover {
+        border-color: var(--border2);
+      }
+      .metric-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+      }
+      .metric-card.fake::before {
+        background: var(--fake);
+      }
+      .metric-card.real::before {
+        background: var(--real);
+      }
+      .metric-card.total::before {
+        background: var(--accent);
+      }
+      .metric-card.acc::before {
+        background: var(--warn);
+      }
+      .metric-label {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text3);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .metric-val {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .metric-val.fake {
+        color: var(--fake);
+      }
+      .metric-val.real {
+        color: var(--real);
+      }
+      .metric-val.total {
+        color: var(--text);
+      }
+      .metric-val.acc {
+        color: var(--warn);
+      }
+      .metric-change {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      .metric-change.up {
+        color: var(--real);
+      }
+      .metric-change.down {
+        color: var(--fake);
+      }
+      .metric-change.neutral {
+        color: var(--text3);
+      }
+
+      /* ── CHARTS ROW ── */
+      .charts-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .chart-triple {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 12px;
+      }
+
+      .card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .card-head {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .card-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+      }
+      .card-subtitle {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text3);
+        margin-top: 2px;
+      }
+      .card-body {
+        padding: 16px 18px;
+      }
+      .card-body.no-pad {
+        padding: 0;
+      }
+
+      /* chart containers */
+      .chart-box {
+        position: relative;
+      }
+
+      /* ── ACTIVITY TABLE ── */
+      .activity-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .activity-table thead tr {
+        border-bottom: 1px solid var(--border);
+      }
+      .activity-table th {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text3);
+        padding: 10px 18px;
+        text-align: left;
+        font-weight: 400;
+      }
+      .activity-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background 0.1s;
+        cursor: pointer;
+      }
+      .activity-table tbody tr:hover {
+        background: var(--bg3);
+      }
+      .activity-table tbody tr:last-child {
+        border-bottom: none;
+      }
+      .activity-table td {
+        padding: 11px 18px;
+        font-size: 13px;
+      }
+      .td-text-cell {
+        max-width: 320px;
+      }
+      .td-snippet {
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 13px;
+      }
+      .td-source {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text3);
+        margin-top: 1px;
+      }
+      .verdict-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: 5px;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+      }
+      .verdict-pill.fake {
+        background: var(--fake-dim);
+        color: var(--fake);
+      }
+      .verdict-pill.real {
+        background: var(--real-dim);
+        color: var(--real);
+      }
+      .vpill-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .td-conf {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text2);
+      }
+      .conf-bar {
+        width: 60px;
+        height: 3px;
+        background: var(--bg4);
+        border-radius: 2px;
+        margin-top: 4px;
+        overflow: hidden;
+      }
+      .conf-fill {
+        height: 100%;
+        border-radius: 2px;
+      }
+      .conf-fill.fake {
+        background: var(--fake);
+      }
+      .conf-fill.real {
+        background: var(--real);
+      }
+      .td-time {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text3);
+      }
+      .fb-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 7px;
+        border-radius: 4px;
+        font-family: var(--mono);
+        font-size: 10px;
+      }
+      .fb-chip.correct {
+        background: var(--real-dim);
+        color: var(--real);
+      }
+      .fb-chip.incorrect {
+        background: var(--fake-dim);
+        color: var(--fake);
+      }
+      .fb-chip.pending {
+        background: var(--bg4);
+        color: var(--text3);
+      }
+
+      /* ── LIME SECTION ── */
+      .lime-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .lime-row {
+        display: grid;
+        grid-template-columns: 130px 1fr 46px;
+        align-items: center;
+        gap: 10px;
+      }
+      .lime-word {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text2);
+        text-align: right;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .lime-track {
+        height: 5px;
+        background: var(--bg4);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .lime-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .lime-fill.fake {
+        background: var(--fake);
+      }
+      .lime-fill.real {
+        background: var(--real);
+      }
+      .lime-score {
+        font-family: var(--mono);
+        font-size: 11px;
+        text-align: right;
+      }
+      .lime-score.fake {
+        color: var(--fake);
+      }
+      .lime-score.real {
+        color: var(--real);
+      }
+
+      /* ── PREDICT PAGE ── */
+      .predict-layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .input-area-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .input-mode-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+      }
+      .mode-tab {
+        padding: 11px 18px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text3);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.15s;
+        background: none;
+        border-top: none;
+        border-left: none;
+        border-right: 1px solid var(--border);
+      }
+      .mode-tab:hover {
+        color: var(--text2);
+        background: var(--bg3);
+      }
+      .mode-tab.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+        background: rgba(79, 124, 255, 0.05);
+      }
+
+      textarea.article-ta {
+        width: 100%;
+        min-height: 180px;
+        padding: 16px 18px;
+        font-family: var(--sans);
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--text);
+        background: transparent;
+        border: none;
+        resize: vertical;
+        outline: none;
+      }
+      textarea.article-ta::placeholder {
+        color: var(--text3);
+      }
+
+      .input-footer {
+        padding: 10px 18px;
+        border-top: 1px solid var(--border);
+        background: var(--bg3);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .char-info {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text3);
+      }
+
+      .url-row {
+        display: flex;
+        padding: 12px 18px;
+        gap: 10px;
+        align-items: center;
+      }
+      .url-prefix {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text3);
+        flex-shrink: 0;
+      }
+      input.url-in {
+        flex: 1;
+        background: var(--bg4);
+        border: 1px solid var(--border2);
+        border-radius: 6px;
+        padding: 9px 12px;
+        font-family: var(--sans);
+        font-size: 13px;
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      input.url-in:focus {
+        border-color: var(--accent);
+      }
+      input.url-in::placeholder {
+        color: var(--text3);
+      }
+
+      .upload-zone {
+        margin: 16px 18px;
+        border: 1px dashed var(--border2);
+        border-radius: 8px;
+        padding: 32px;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+      }
+      .upload-zone:hover {
+        background: var(--bg3);
+        border-color: var(--accent);
+      }
+      .upload-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+        opacity: 0.3;
+      }
+      .upload-text {
+        font-size: 13px;
+        color: var(--text3);
+      }
+      .upload-text span {
+        color: var(--accent);
+      }
+
+      .result-card-dash {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .result-header-dash {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .result-verdict-big {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .result-verdict-big.fake {
+        color: var(--fake);
+      }
+      .result-verdict-big.real {
+        color: var(--real);
+      }
+      .rv-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .gauge-mini {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .gauge-ring {
+        position: relative;
+        width: 64px;
+        height: 64px;
+      }
+      .gauge-ring svg {
+        transform: rotate(-90deg);
+      }
+      .gauge-ring-num {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(90deg);
+        font-family: var(--mono);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .gauge-mini-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text3);
+        margin-top: 4px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .hl-text-box {
+        padding: 14px 18px;
+        font-size: 13px;
+        line-height: 1.9;
+        color: var(--text2);
+        border-bottom: 1px solid var(--border);
+      }
+      .hl-f {
+        background: rgba(255, 77, 106, 0.2);
+        border-bottom: 2px solid rgba(255, 77, 106, 0.5);
+        border-radius: 2px;
+        padding: 0 2px;
+        color: var(--fake);
+      }
+      .hl-f.s {
+        background: rgba(255, 77, 106, 0.32);
+      }
+      .hl-r {
+        background: rgba(0, 214, 143, 0.15);
+        border-bottom: 2px solid rgba(0, 214, 143, 0.4);
+        border-radius: 2px;
+        padding: 0 2px;
+        color: var(--real);
+      }
+
+      .fb-row-dash {
+        padding: 12px 18px;
+        background: var(--bg3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .fb-label-dash {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        flex: 1;
+      }
+      .fb-btn-dash {
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-family: var(--mono);
+        font-size: 11px;
+        cursor: pointer;
+        border: 1px solid var(--border2);
+        background: var(--bg4);
+        color: var(--text2);
+        transition: all 0.15s;
+      }
+      .fb-btn-dash:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .fb-btn-dash.active-correct {
+        border-color: var(--real);
+        color: var(--real);
+        background: var(--real-dim);
+      }
+      .fb-btn-dash.active-wrong {
+        border-color: var(--fake);
+        color: var(--fake);
+        background: var(--fake-dim);
+      }
+
+      /* ── HISTORY PAGE ── */
+      .history-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 14px;
+      }
+      .filter-chip {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-family: var(--mono);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        border: 1px solid var(--border2);
+        background: transparent;
+        color: var(--text3);
+        transition: all 0.15s;
+      }
+      .filter-chip:hover {
+        color: var(--text);
+        border-color: var(--border2);
+        background: var(--bg3);
+      }
+      .filter-chip.active {
+        background: rgba(79, 124, 255, 0.12);
+        color: var(--accent);
+        border-color: rgba(79, 124, 255, 0.3);
+      }
+      .filter-chip.fake-c.active {
+        background: var(--fake-dim);
+        color: var(--fake);
+        border-color: rgba(255, 77, 106, 0.3);
+      }
+      .filter-chip.real-c.active {
+        background: var(--real-dim);
+        color: var(--real);
+        border-color: rgba(0, 214, 143, 0.3);
+      }
+      input.search-in {
+        flex: 1;
+        background: var(--bg4);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px 12px;
+        font-family: var(--sans);
+        font-size: 13px;
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      input.search-in:focus {
+        border-color: var(--accent);
+      }
+      input.search-in::placeholder {
+        color: var(--text3);
+      }
+      .export-btns-row {
+        display: flex;
+        gap: 6px;
+        margin-left: auto;
+      }
+
+      /* ── ANIMATIONS ── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .fade-up {
+        animation: fadeUp 0.35s ease both;
+      }
+      .fade-up-2 {
+        animation: fadeUp 0.35s ease 0.07s both;
+      }
+      .fade-up-3 {
+        animation: fadeUp 0.35s ease 0.14s both;
+      }
+      .fade-up-4 {
+        animation: fadeUp 0.35s ease 0.21s both;
+      }
+
+      /* ── SCROLLBAR ── */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--bg4);
+        border-radius: 3px;
+      }
+
+      /* ── LOADING ── */
+      .loading-screen {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 11, 14, 0.85);
+        z-index: 200;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        backdrop-filter: blur(4px);
+      }
+      .loading-screen.show {
+        display: flex;
+      }
+      .loader-ring {
+        width: 36px;
+        height: 36px;
+        border: 2px solid var(--bg4);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loader-text {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text3);
+        letter-spacing: 0.1em;
+      }
+
+      /* ── ABOUT ── */
+      .about-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .about-body-text {
+        font-size: 14px;
+        line-height: 1.8;
+        color: var(--text2);
+      }
+      .about-body-text p {
+        margin-bottom: 14px;
+      }
+      .about-body-text strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .tech-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+      .tech-card {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+      }
+      .tech-name {
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--accent);
+        margin-bottom: 4px;
+      }
+      .tech-desc {
+        font-size: 12px;
+        color: var(--text3);
+        line-height: 1.5;
+      }
+      .pipeline-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .pipeline-item {
+        display: flex;
+        gap: 14px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        align-items: flex-start;
+      }
+      .pipeline-item:last-child {
+        border-bottom: none;
+      }
+      .pipeline-num {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--accent);
+        min-width: 24px;
+        padding-top: 1px;
+      }
+      .pipeline-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 2px;
+      }
+      .pipeline-desc {
+        font-size: 12px;
+        color: var(--text3);
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loading-screen" id="loadingScreen">
+      <div class="loader-ring"></div>
+      <div class="loader-text">đang phân tích văn bản...</div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-icon">VG</div>
+        <div>
+          <div class="sb-logo-name">VietGuard</div>
+          <div class="sb-logo-ver">v1.0.0</div>
+        </div>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-section-label">Menu</div>
+        <div
+          class="sb-item active"
+          id="nav-dashboard"
+          onclick="navigate('dashboard')"
+        >
+          <span class="sb-icon">⊞</span> Dashboard
+        </div>
+        <div class="sb-item" id="nav-predict" onclick="navigate('predict')">
+          <span class="sb-icon">◎</span> Kiểm tra tin tức
+          <span class="sb-badge blue">Mới</span>
+        </div>
+        <div class="sb-item" id="nav-history" onclick="navigate('history')">
+          <span class="sb-icon">☰</span> Lịch sử
+        </div>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-section-label">Hệ thống</div>
+        <div class="sb-item" id="nav-about" onclick="navigate('about')">
+          <span class="sb-icon">◇</span> Về dự án
+        </div>
+      </div>
+
+      <div class="sb-bottom">
+        <div class="sb-model-card">
+          <div class="sb-model-label">Core Model</div>
+          <div class="sb-model-name">PhoBERT-base</div>
+          <div class="sb-model-status">
+            <div class="sb-status-dot"></div>
+            <span class="sb-status-text">Online</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <span class="topbar-page" id="topbar-page">Dashboard</span>
+          <span class="topbar-sep">/</span>
+          <span class="topbar-sub" id="topbar-sub">Tổng quan hệ thống</span>
+        </div>
+        <div class="topbar-right">
+          <span class="topbar-time" id="clock">--:--:--</span>
+          <button class="tb-btn ghost" onclick="navigate('predict')">
+            + Kiểm tra mới
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content">
+        <!-- ══ DASHBOARD PAGE ══ -->
+        <div class="pg active" id="pg-dashboard">
+          <div class="metrics-row fade-up">
+            <div class="metric-card total">
+              <div class="metric-label">Tổng kiểm tra</div>
+              <div class="metric-val total" id="m-total">1,284</div>
+              <div class="metric-change up">↑ +48 hôm nay</div>
+            </div>
+            <div class="metric-card fake">
+              <div class="metric-label">Tin giả phát hiện</div>
+              <div class="metric-val fake" id="m-fake">742</div>
+              <div class="metric-change down">57.8% tổng số</div>
+            </div>
+            <div class="metric-card real">
+              <div class="metric-label">Tin thật xác nhận</div>
+              <div class="metric-val real" id="m-real">542</div>
+              <div class="metric-change up">42.2% tổng số</div>
+            </div>
+            <div class="metric-card acc">
+              <div class="metric-label">Độ chính xác</div>
+              <div class="metric-val acc">87.4%</div>
+              <div class="metric-change up">↑ +1.2% tháng này</div>
+            </div>
+          </div>
+
+          <div class="chart-triple fade-up-2">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">Hoạt động kiểm tra theo ngày</div>
+                  <div class="card-subtitle">30 ngày gần nhất</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="chart-box" style="height: 200px">
+                  <canvas id="lineChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">Phân bố nhãn</div>
+                  <div class="card-subtitle">Tỉ lệ thật / giả</div>
+                </div>
+              </div>
+              <div
+                class="card-body"
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  height: 200px;
+                "
+              >
+                <div style="width: 160px; height: 160px; position: relative">
+                  <canvas id="donutChart"></canvas>
+                  <div
+                    style="
+                      position: absolute;
+                      top: 50%;
+                      left: 50%;
+                      transform: translate(-50%, -50%);
+                      text-align: center;
+                    "
+                  >
+                    <div
+                      style="
+                        font-size: 20px;
+                        font-weight: 700;
+                        color: var(--text);
+                        font-family: var(--mono);
+                      "
+                    >
+                      57.8%
+                    </div>
+                    <div
+                      style="
+                        font-size: 10px;
+                        color: var(--text3);
+                        font-family: var(--mono);
+                        letter-spacing: 0.06em;
+                        text-transform: uppercase;
+                      "
+                    >
+                      Tin giả
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-row fade-up-3">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">Top từ khóa tin giả</div>
+                  <div class="card-subtitle">Tần suất xuất hiện trong LIME</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="lime-list">
+                  <div class="lime-row">
+                    <span class="lime-word">không rõ danh tính</span>
+                    <div class="lime-track">
+                      <div class="lime-fill fake" style="width: 92%"></div>
+                    </div>
+                    <span class="lime-score fake">−0.42</span>
+                  </div>
+                  <div class="lime-row">
+                    <span class="lime-word">chuyên gia cảnh báo</span>
+                    <div class="lime-track">
+                      <div class="lime-fill fake" style="width: 80%"></div>
+                    </div>
+                    <span class="lime-score fake">−0.38</span>
+                  </div>
+                  <div class="lime-row">
+                    <span class="lime-word">bí mật ký kết</span>
+                    <div class="lime-track">
+                      <div class="lime-fill fake" style="width: 68%"></div>
+                    </div>
+                    <span class="lime-score fake">−0.31</span>
+                  </div>
+                  <div class="lime-row">
+                    <span class="lime-word">lan truyền chóng mặt</span>
+                    <div class="lime-track">
+                      <div class="lime-fill fake" style="width: 56%"></div>
+                    </div>
+                    <span class="lime-score fake">−0.27</span>
+                  </div>
+                  <div class="lime-row">
+                    <span class="lime-word">cơ quan nhà nước</span>
+                    <div class="lime-track">
+                      <div class="lime-fill real" style="width: 62%"></div>
+                    </div>
+                    <span class="lime-score real">+0.29</span>
+                  </div>
+                  <div class="lime-row">
+                    <span class="lime-word">thông báo chính thức</span>
+                    <div class="lime-track">
+                      <div class="lime-fill real" style="width: 50%"></div>
+                    </div>
+                    <span class="lime-score real">+0.24</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">Phân bố độ tin cậy</div>
+                  <div class="card-subtitle">Confidence score histogram</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="chart-box" style="height: 168px">
+                  <canvas id="barChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card fade-up-4">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Hoạt động gần nhất</div>
+                <div class="card-subtitle">8 lần kiểm tra mới nhất</div>
+              </div>
+              <button
+                class="tb-btn ghost"
+                style="font-size: 11px; padding: 5px 10px"
+                onclick="navigate('history')"
+              >
+                Xem tất cả →
+              </button>
+            </div>
+            <div class="card-body no-pad">
+              <table class="activity-table" id="recentTable"></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ PREDICT PAGE ══ -->
+        <div class="pg" id="pg-predict">
+          <div class="predict-layout fade-up">
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <div class="input-area-card">
+                <div class="input-mode-tabs">
+                  <button
+                    class="mode-tab active"
+                    onclick="switchMode('text', this)"
+                  >
+                    ✎ Văn bản
+                  </button>
+                  <button class="mode-tab" onclick="switchMode('url', this)">
+                    ⊕ URL
+                  </button>
+                  <button class="mode-tab" onclick="switchMode('file', this)">
+                    ↑ File
+                  </button>
+                </div>
+                <div id="mode-text">
+                  <textarea
+                    class="article-ta"
+                    id="articleText"
+                    placeholder="Dán nội dung bài báo cần kiểm tra vào đây..."
+                    oninput="
+                      document.getElementById('cc').textContent =
+                        this.value.length
+                    "
+                  ></textarea>
+                  <div class="input-footer">
+                    <span class="char-info"
+                      ><span id="cc">0</span> ký tự · tối đa ~5,000</span
+                    >
+                    <button class="tb-btn primary" onclick="runPredict()">
+                      Phân tích →
+                    </button>
+                  </div>
+                </div>
+                <div id="mode-url" style="display: none">
+                  <div class="url-row">
+                    <span class="url-prefix">URL →</span>
+                    <input
+                      class="url-in"
+                      type="text"
+                      placeholder="https://vnexpress.net/bai-bao..."
+                    />
+                  </div>
+                  <div class="input-footer">
+                    <span class="char-info"
+                      >Hỗ trợ: VnExpress, Tuổi Trẻ, Thanh Niên, Dân Trí</span
+                    >
+                    <button class="tb-btn primary" onclick="runPredict()">
+                      Crawl & Phân tích →
+                    </button>
+                  </div>
+                </div>
+                <div id="mode-file" style="display: none">
+                  <div class="upload-zone">
+                    <div class="upload-icon">↑</div>
+                    <div class="upload-text">
+                      Kéo thả file vào đây hoặc <span>chọn file</span>
+                    </div>
+                    <div
+                      style="
+                        font-size: 11px;
+                        color: var(--text3);
+                        margin-top: 4px;
+                        font-family: var(--mono);
+                      "
+                    >
+                      .txt · .docx · tối đa 2MB
+                    </div>
+                  </div>
+                  <div class="input-footer">
+                    <span class="char-info">Chưa chọn file</span>
+                    <button class="tb-btn primary">Phân tích →</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Result -->
+              <div
+                class="result-card-dash"
+                id="resultCard"
+                style="display: none"
+              >
+                <div class="result-header-dash">
+                  <div class="result-verdict-big fake" id="rv">
+                    <span class="rv-dot"></span>
+                    <span id="rv-label">Tin giả</span>
+                  </div>
+                  <div class="gauge-mini">
+                    <div class="gauge-ring">
+                      <svg width="64" height="64" viewBox="0 0 64 64">
+                        <circle
+                          cx="32"
+                          cy="32"
+                          r="26"
+                          fill="none"
+                          stroke="#20243060"
+                          stroke-width="5"
+                        />
+                        <circle
+                          cx="32"
+                          cy="32"
+                          r="26"
+                          fill="none"
+                          stroke="#ff4d6a"
+                          stroke-width="5"
+                          stroke-linecap="round"
+                          id="gArc"
+                          stroke-dasharray="163.36"
+                          stroke-dashoffset="40.84"
+                        />
+                      </svg>
+                      <div class="gauge-ring-num" id="gNum">75%</div>
+                    </div>
+                    <div class="gauge-mini-label">Confidence</div>
+                  </div>
+                </div>
+                <div class="hl-text-box" id="hlText"></div>
+                <div
+                  class="card-head"
+                  style="border-top: 1px solid var(--border)"
+                >
+                  <div class="card-title" style="font-size: 12px">
+                    Đặc trưng LIME
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="lime-list" id="limeResult"></div>
+                </div>
+                <div class="fb-row-dash">
+                  <span class="fb-label-dash">Phản hồi:</span>
+                  <button
+                    class="fb-btn-dash"
+                    id="fb1"
+                    onclick="setFb('correct')"
+                  >
+                    ✓ Chính xác
+                  </button>
+                  <button class="fb-btn-dash" id="fb2" onclick="setFb('wrong')">
+                    ✗ Sai
+                  </button>
+                  <button
+                    class="tb-btn ghost"
+                    style="
+                      font-size: 11px;
+                      padding: 5px 10px;
+                      margin-left: auto;
+                    "
+                    onclick="alert('Xuất PDF...')"
+                  >
+                    ↓ PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title">Kiểm tra gần đây</div>
+                </div>
+                <div class="card-body no-pad">
+                  <div id="sidebarHistory"></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title">Hướng dẫn</div>
+                </div>
+                <div class="card-body">
+                  <div style="display: flex; flex-direction: column; gap: 10px">
+                    <div
+                      style="
+                        display: flex;
+                        gap: 10px;
+                        font-size: 12px;
+                        color: var(--text3);
+                        line-height: 1.5;
+                      "
+                    >
+                      <span
+                        style="
+                          font-family: var(--mono);
+                          color: var(--accent);
+                          flex-shrink: 0;
+                        "
+                        >01</span
+                      >
+                      Dán toàn bộ nội dung bài báo để kết quả chính xác nhất.
+                    </div>
+                    <div
+                      style="
+                        display: flex;
+                        gap: 10px;
+                        font-size: 12px;
+                        color: var(--text3);
+                        line-height: 1.5;
+                      "
+                    >
+                      <span
+                        style="
+                          font-family: var(--mono);
+                          color: var(--accent);
+                          flex-shrink: 0;
+                        "
+                        >02</span
+                      >
+                      Từ <span style="color: var(--fake)">đỏ</span> = dấu hiệu
+                      tin giả · từ
+                      <span style="color: var(--real)">xanh</span> = tin thật.
+                    </div>
+                    <div
+                      style="
+                        display: flex;
+                        gap: 10px;
+                        font-size: 12px;
+                        color: var(--text3);
+                        line-height: 1.5;
+                      "
+                    >
+                      <span
+                        style="
+                          font-family: var(--mono);
+                          color: var(--accent);
+                          flex-shrink: 0;
+                        "
+                        >03</span
+                      >
+                      Phản hồi của bạn giúp cải thiện mô hình AI.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ HISTORY PAGE ══ -->
+        <div class="pg" id="pg-history">
+          <div class="history-toolbar fade-up">
+            <button
+              class="filter-chip active"
+              onclick="filterHist('all', this)"
+            >
+              Tất cả
+            </button>
+            <button
+              class="filter-chip fake-c"
+              onclick="filterHist('fake', this)"
+            >
+              Tin giả
+            </button>
+            <button
+              class="filter-chip real-c"
+              onclick="filterHist('real', this)"
+            >
+              Tin thật
+            </button>
+            <input
+              class="search-in"
+              type="text"
+              placeholder="Tìm kiếm..."
+              oninput="searchHist(this.value)"
+            />
+            <div class="export-btns-row">
+              <button
+                class="tb-btn ghost"
+                style="font-size: 11px"
+                onclick="alert('CSV...')"
+              >
+                ↓ CSV
+              </button>
+              <button
+                class="tb-btn ghost"
+                style="font-size: 11px"
+                onclick="alert('PDF...')"
+              >
+                ↓ PDF
+              </button>
+            </div>
+          </div>
+          <div class="card fade-up-2">
+            <div class="card-body no-pad">
+              <table class="activity-table" id="historyTable"></table>
+            </div>
+          </div>
+          <div
+            style="
+              padding: 12px 0;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <span
+              style="
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--text3);
+              "
+              id="histCount"
+              >8 kết quả</span
+            >
+          </div>
+        </div>
+
+        <!-- ══ ABOUT PAGE ══ -->
+        <div class="pg" id="pg-about">
+          <div
+            class="fade-up"
+            style="display: flex; flex-direction: column; gap: 16px"
+          >
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title">Giới thiệu dự án</div>
+              </div>
+              <div class="card-body">
+                <div class="about-body-text">
+                  <p>
+                    <strong>VietGuard</strong> là hệ thống AI chuyên biệt phát
+                    hiện tin giả trong ngữ cảnh tiếng Việt, kết hợp mô hình
+                    Transformer và Explainable AI để đưa ra phán quyết minh
+                    bạch.
+                  </p>
+                  <p>
+                    Điểm khác biệt của VietGuard là khả năng
+                    <strong>giải thích quyết định</strong> — không chỉ nói "đây
+                    là tin giả" mà còn chỉ rõ những từ nào, cụm từ nào là dấu
+                    hiệu nhận biết.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title">Kiến trúc kỹ thuật</div>
+              </div>
+              <div class="card-body">
+                <div class="tech-grid">
+                  <div class="tech-card">
+                    <div class="tech-name">PhoBERT</div>
+                    <div class="tech-desc">
+                      Mô hình BERT huấn luyện trên tiếng Việt, xử lý ngữ nghĩa
+                      chính xác
+                    </div>
+                  </div>
+                  <div class="tech-card">
+                    <div class="tech-name">LIME</div>
+                    <div class="tech-desc">
+                      Giải thích quyết định AI bằng cách phân tích ảnh hưởng
+                      từng từ
+                    </div>
+                  </div>
+                  <div class="tech-card">
+                    <div class="tech-name">underthesea</div>
+                    <div class="tech-desc">
+                      Word segmentation — tách "chính_phủ" thay vì "chính" +
+                      "phủ"
+                    </div>
+                  </div>
+                  <div class="tech-card">
+                    <div class="tech-name">Flask</div>
+                    <div class="tech-desc">
+                      Web framework Python nhẹ, render HTML qua Jinja2 templates
+                    </div>
+                  </div>
+                  <div class="tech-card">
+                    <div class="tech-name">SQLite</div>
+                    <div class="tech-desc">
+                      Lưu trữ phản hồi người dùng, nền tảng cho active learning
+                    </div>
+                  </div>
+                  <div class="tech-card">
+                    <div class="tech-name">PyTorch</div>
+                    <div class="tech-desc">
+                      Deep learning framework, inference nhanh với
+                      torch.no_grad()
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="about-grid">
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title">Thông số mô hình</div>
+                </div>
+                <div class="card-body">
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 12px;
+                    "
+                  >
+                    <div>
+                      <div
+                        style="
+                          font-family: var(--mono);
+                          font-size: 10px;
+                          color: var(--text3);
+                          text-transform: uppercase;
+                          letter-spacing: 0.08em;
+                          margin-bottom: 4px;
+                        "
+                      >
+                        Max tokens
+                      </div>
+                      <div
+                        style="
+                          font-size: 28px;
+                          font-weight: 700;
+                          color: var(--accent);
+                          font-family: var(--mono);
+                        "
+                      >
+                        256
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style="
+                          font-family: var(--mono);
+                          font-size: 10px;
+                          color: var(--text3);
+                          text-transform: uppercase;
+                          letter-spacing: 0.08em;
+                          margin-bottom: 4px;
+                        "
+                      >
+                        LIME samples
+                      </div>
+                      <div
+                        style="
+                          font-size: 28px;
+                          font-weight: 700;
+                          color: var(--accent);
+                          font-family: var(--mono);
+                        "
+                      >
+                        50
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style="
+                          font-family: var(--mono);
+                          font-size: 10px;
+                          color: var(--text3);
+                          text-transform: uppercase;
+                          letter-spacing: 0.08em;
+                          margin-bottom: 4px;
+                        "
+                      >
+                        Features
+                      </div>
+                      <div
+                        style="
+                          font-size: 28px;
+                          font-weight: 700;
+                          color: var(--accent);
+                          font-family: var(--mono);
+                        "
+                      >
+                        6
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style="
+                          font-family: var(--mono);
+                          font-size: 10px;
+                          color: var(--text3);
+                          text-transform: uppercase;
+                          letter-spacing: 0.08em;
+                          margin-bottom: 4px;
+                        "
+                      >
+                        Accuracy
+                      </div>
+                      <div
+                        style="
+                          font-size: 28px;
+                          font-weight: 700;
+                          color: var(--warn);
+                          font-family: var(--mono);
+                        "
+                      >
+                        87%
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title">Pipeline xử lý</div>
+                </div>
+                <div class="card-body no-pad">
+                  <div class="pipeline-list" style="padding: 0 18px">
+                    <div class="pipeline-item">
+                      <span class="pipeline-num">01</span>
+                      <div>
+                        <div class="pipeline-title">Nhận đầu vào</div>
+                        <div class="pipeline-desc">
+                          Text, URL bài báo, hoặc file tải lên
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pipeline-item">
+                      <span class="pipeline-num">02</span>
+                      <div>
+                        <div class="pipeline-title">Tiền xử lý</div>
+                        <div class="pipeline-desc">
+                          Xóa URL, chuẩn hóa, word segmentation
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pipeline-item">
+                      <span class="pipeline-num">03</span>
+                      <div>
+                        <div class="pipeline-title">Chunking</div>
+                        <div class="pipeline-desc">
+                          Chia đoạn 254 token nếu vượt giới hạn
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pipeline-item">
+                      <span class="pipeline-num">04</span>
+                      <div>
+                        <div class="pipeline-title">Inference + LIME</div>
+                        <div class="pipeline-desc">
+                          PhoBERT dự đoán, LIME giải thích
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pipeline-item">
+                      <span class="pipeline-num">05</span>
+                      <div>
+                        <div class="pipeline-title">Lưu trữ feedback</div>
+                        <div class="pipeline-desc">
+                          Ghi vào SQLite phục vụ active learning
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const historyData = [
+        {
+          id: 1,
+          text: "Bộ Y tế phủ nhận thông tin vaccine gây tác dụng phụ nguy hiểm...",
+          src: "vnexpress.net",
+          label: "real",
+          conf: 89,
+          time: "10 phút",
+          fb: "correct",
+        },
+        {
+          id: 2,
+          text: "Chính phủ bí mật ký kết thỏa thuận gây tranh cãi vào đêm qua...",
+          src: "facebook.com",
+          label: "fake",
+          conf: 75,
+          time: "25 phút",
+          fb: "correct",
+        },
+        {
+          id: 3,
+          text: "VinFast xuất khẩu thành công 10,000 xe điện sang thị trường Mỹ...",
+          src: "tuoitre.vn",
+          label: "real",
+          conf: 92,
+          time: "1 giờ",
+          fb: null,
+        },
+        {
+          id: 4,
+          text: "Thủ tướng ban hành lệnh khẩn cấp về tình hình kinh tế...",
+          src: "zalo.me",
+          label: "fake",
+          conf: 68,
+          time: "2 giờ",
+          fb: "incorrect",
+        },
+        {
+          id: 5,
+          text: "Đại học Quốc gia công bố kết quả nghiên cứu biến đổi khí hậu...",
+          src: "thanhnien.vn",
+          label: "real",
+          conf: 84,
+          time: "3 giờ",
+          fb: "correct",
+        },
+        {
+          id: 6,
+          text: "Chuyên gia cảnh báo nguy cơ sụp đổ hệ thống ngân hàng VN...",
+          src: "telegram.me",
+          label: "fake",
+          conf: 81,
+          time: "5 giờ",
+          fb: null,
+        },
+        {
+          id: 7,
+          text: "Hà Nội thí điểm xe bus điện trên 5 tuyến mới từ tháng 7...",
+          src: "hanoimoi.vn",
+          label: "real",
+          conf: 95,
+          time: "Hôm qua",
+          fb: "correct",
+        },
+        {
+          id: 8,
+          text: "Phát hiện loại vaccine bí mật chữa được mọi bệnh ung thư...",
+          src: "tiktok.com",
+          label: "fake",
+          conf: 97,
+          time: "2 ngày",
+          fb: "correct",
+        },
+      ];
+
+      function tableRows(data) {
+        return `<thead><tr>
+    <th>#</th><th>Nội dung</th><th>Nhãn</th><th>Conf.</th><th>Thời gian</th><th>Feedback</th>
+  </tr></thead><tbody>${data
+    .map(
+      (d) => `<tr>
+    <td style="font-family:var(--mono);font-size:11px;color:var(--text3);">${d.id}</td>
+    <td class="td-text-cell"><div class="td-snippet">${d.text}</div><div class="td-source">${d.src}</div></td>
+    <td><span class="verdict-pill ${d.label}"><span class="vpill-dot"></span>${d.label === "fake" ? "Giả" : "Thật"}</span></td>
+    <td class="td-conf">${d.conf}%<div class="conf-bar"><div class="conf-fill ${d.label}" style="width:${d.conf}%"></div></div></td>
+    <td class="td-time">${d.time}</td>
+    <td>${d.fb ? `<span class="fb-chip ${d.fb}">${d.fb === "correct" ? "✓ Đúng" : "✗ Sai"}</span>` : '<span class="fb-chip pending">—</span>'}</td>
+  </tr>`,
+    )
+    .join("")}</tbody>`;
+      }
+
+      document.getElementById("recentTable").innerHTML = tableRows(
+        historyData.slice(0, 6),
+      );
+      document.getElementById("historyTable").innerHTML =
+        tableRows(historyData);
+
+      function renderSidebarHistory() {
+        const el = document.getElementById("sidebarHistory");
+        el.innerHTML = historyData
+          .slice(0, 4)
+          .map(
+            (d) => `
+    <div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.1s;" onmouseenter="this.style.background='var(--bg3)'" onmouseleave="this.style.background=''">
+      <span style="flex:1;font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.text}</span>
+      <span class="verdict-pill ${d.label}" style="font-size:10px;">${d.label === "fake" ? "Giả" : "Thật"}</span>
+    </div>`,
+          )
+          .join("");
+      }
+      renderSidebarHistory();
+
+      let histFilter = "all",
+        histSearch = "";
+      function filterHist(f, btn) {
+        histFilter = f;
+        document
+          .querySelectorAll(".filter-chip")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        applyHistFilter();
+      }
+      function searchHist(q) {
+        histSearch = q.toLowerCase();
+        applyHistFilter();
+      }
+      function applyHistFilter() {
+        let d = historyData;
+        if (histFilter !== "all") d = d.filter((x) => x.label === histFilter);
+        if (histSearch)
+          d = d.filter(
+            (x) =>
+              x.text.toLowerCase().includes(histSearch) ||
+              x.src.includes(histSearch),
+          );
+        document.getElementById("historyTable").innerHTML = tableRows(d);
+        document.getElementById("histCount").textContent =
+          `${d.length} kết quả`;
+      }
+
+      function switchMode(m, btn) {
+        document
+          .querySelectorAll(".mode-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        ["text", "url", "file"].forEach((id) => {
+          document.getElementById("mode-" + id).style.display =
+            id === m ? "" : "none";
+        });
+      }
+
+      function runPredict() {
+        const txt = document.getElementById("articleText").value.trim();
+        if (!txt) {
+          document.getElementById("articleText").style.border =
+            "1px solid var(--fake)";
+          setTimeout(
+            () => (document.getElementById("articleText").style.border = ""),
+            800,
+          );
+          return;
+        }
+        document.getElementById("loadingScreen").classList.add("show");
+        setTimeout(() => {
+          document.getElementById("loadingScreen").classList.remove("show");
+          const fake = Math.random() > 0.4;
+          const conf = Math.floor(62 + Math.random() * 33);
+          showResult(fake, conf, txt);
+        }, 1800);
+      }
+
+      function showResult(isFake, conf, text) {
+        const card = document.getElementById("resultCard");
+        card.style.display = "block";
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        const rv = document.getElementById("rv");
+        rv.className = "result-verdict-big " + (isFake ? "fake" : "real");
+        document.getElementById("rv-label").textContent = isFake
+          ? "Tin giả"
+          : "Tin thật";
+
+        const circ = 163.36;
+        const offset = circ - (conf / 100) * circ;
+        const arc = document.getElementById("gArc");
+        arc.style.stroke = isFake ? "var(--fake)" : "var(--real)";
+        arc.style.strokeDashoffset = circ;
+        setTimeout(() => {
+          arc.style.transition =
+            "stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)";
+          arc.style.strokeDashoffset = offset;
+        }, 50);
+        document.getElementById("gNum").textContent = conf + "%";
+
+        document.getElementById("hlText").innerHTML =
+          `Theo nguồn tin <span class="hl-f s">không rõ danh tính</span>, chính phủ đã <span class="hl-f">bí mật ký kết</span> một thỏa thuận gây tranh cãi. Các <span class="hl-f s">chuyên gia cảnh báo</span> rằng thông tin này <span class="hl-r">chưa được xác minh</span> từ bất kỳ <span class="hl-r s">cơ quan nhà nước</span> nào.`;
+
+        document.getElementById("limeResult").innerHTML = [
+          { w: "không rõ danh tính", v: "−0.42", p: 92, t: "fake" },
+          { w: "chuyên gia cảnh báo", v: "−0.38", p: 80, t: "fake" },
+          { w: "bí mật ký kết", v: "−0.31", p: 65, t: "fake" },
+          { w: "cơ quan nhà nước", v: "+0.29", p: 62, t: "real" },
+          { w: "chưa được xác minh", v: "+0.18", p: 38, t: "real" },
+        ]
+          .map(
+            (r) =>
+              `<div class="lime-row"><span class="lime-word">${r.w}</span><div class="lime-track"><div class="lime-fill ${r.t}" style="width:${r.p}%"></div></div><span class="lime-score ${r.t}">${r.v}</span></div>`,
+          )
+          .join("");
+
+        document.getElementById("fb1").className = "fb-btn-dash";
+        document.getElementById("fb2").className = "fb-btn-dash";
+      }
+
+      function setFb(t) {
+        document.getElementById("fb1").className =
+          "fb-btn-dash" + (t === "correct" ? " active-correct" : "");
+        document.getElementById("fb2").className =
+          "fb-btn-dash" + (t === "wrong" ? " active-wrong" : "");
+      }
+
+      function navigate(page) {
+        document
+          .querySelectorAll(".pg")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelectorAll(".sb-item")
+          .forEach((i) => i.classList.remove("active"));
+        document.getElementById("pg-" + page).classList.add("active");
+        document.getElementById("nav-" + page).classList.add("active");
+        const labels = {
+          dashboard: ["Dashboard", "Tổng quan hệ thống"],
+          predict: ["Kiểm tra", "Phân tích tin tức"],
+          history: ["Lịch sử", "Tất cả lần kiểm tra"],
+          about: ["Về dự án", "Thông tin kỹ thuật"],
+        };
+        document.getElementById("topbar-page").textContent = labels[page][0];
+        document.getElementById("topbar-sub").textContent = labels[page][1];
+        document.querySelector(".main").scrollTop = 0;
+      }
+
+      // Clock
+      function tick() {
+        document.getElementById("clock").textContent =
+          new Date().toLocaleTimeString("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+      }
+      tick();
+      setInterval(tick, 1000);
+
+      // Charts
+      const lineCtx = document.getElementById("lineChart").getContext("2d");
+      const days = Array.from({ length: 30 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - 29 + i);
+        return d.getDate() + "/" + (d.getMonth() + 1);
+      });
+      const fakeD = days.map(() => Math.floor(10 + Math.random() * 35));
+      const realD = days.map(() => Math.floor(5 + Math.random() * 25));
+      new Chart(lineCtx, {
+        type: "line",
+        data: {
+          labels: days,
+          datasets: [
+            {
+              label: "Tin giả",
+              data: fakeD,
+              borderColor: "#ff4d6a",
+              backgroundColor: "rgba(255,77,106,0.08)",
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.4,
+              fill: true,
+            },
+            {
+              label: "Tin thật",
+              data: realD,
+              borderColor: "#00d68f",
+              backgroundColor: "rgba(0,214,143,0.06)",
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.4,
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              ticks: { color: "#555870", font: { size: 10 }, maxTicksLimit: 8 },
+              grid: { color: "rgba(255,255,255,0.03)" },
+              border: { color: "rgba(255,255,255,0.06)" },
+            },
+            y: {
+              ticks: { color: "#555870", font: { size: 10 } },
+              grid: { color: "rgba(255,255,255,0.04)" },
+              border: { color: "rgba(255,255,255,0.06)" },
+            },
+          },
+        },
+      });
+
+      const donutCtx = document.getElementById("donutChart").getContext("2d");
+      new Chart(donutCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["Tin giả", "Tin thật"],
+          datasets: [
+            {
+              data: [742, 542],
+              backgroundColor: [
+                "rgba(255,77,106,0.85)",
+                "rgba(0,214,143,0.75)",
+              ],
+              borderWidth: 0,
+              hoverOffset: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: false,
+          cutout: "72%",
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (c) => ` ${c.label}: ${c.raw.toLocaleString()}`,
+              },
+            },
+          },
+        },
+      });
+
+      const barCtx = document.getElementById("barChart").getContext("2d");
+      const bins = ["50-60", "60-70", "70-80", "80-90", "90-100"];
+      new Chart(barCtx, {
+        type: "bar",
+        data: {
+          labels: bins,
+          datasets: [
+            {
+              label: "Tin giả",
+              data: [45, 112, 198, 243, 144],
+              backgroundColor: "rgba(255,77,106,0.7)",
+              borderRadius: 3,
+              borderSkipped: false,
+            },
+            {
+              label: "Tin thật",
+              data: [12, 58, 134, 198, 140],
+              backgroundColor: "rgba(0,214,143,0.6)",
+              borderRadius: 3,
+              borderSkipped: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              ticks: { color: "#555870", font: { size: 10 } },
+              grid: { display: false },
+              border: { color: "rgba(255,255,255,0.06)" },
+            },
+            y: {
+              ticks: { color: "#555870", font: { size: 10 }, maxTicksLimit: 5 },
+              grid: { color: "rgba(255,255,255,0.04)" },
+              border: { color: "rgba(255,255,255,0.06)" },
+            },
+            stacked: false,
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,233 @@
+{% extends 'layout.html' %} {% set active_page = 'history' %} {% block title
+%}Lịch sử kiểm tra{% endblock %} {% block topbar_page %}Lịch sử{% endblock %} {%
+block topbar_sub %}Tất cả lần kiểm tra{% endblock %} {% block content %}
+
+<!-- Toolbar -->
+<div class="history-toolbar fade-up">
+  <a
+    class="filter-chip {% if filter_type == 'all' %}active{% endif %}"
+    href="/history?filter=all&q={{ search }}"
+    >Tất cả</a
+  >
+  <a
+    class="filter-chip fake-c {% if filter_type == 'fake' %}active{% endif %}"
+    href="/history?filter=fake&q={{ search }}"
+    >Tin giả</a
+  >
+  <a
+    class="filter-chip real-c {% if filter_type == 'real' %}active{% endif %}"
+    href="/history?filter=real&q={{ search }}"
+    >Tin thật</a
+  >
+  <a
+    class="filter-chip bk-c {% if filter_type == 'bookmarked' %}active{% endif %}"
+    href="/history?filter=bookmarked&q={{ search }}"
+    >⭐ Bookmark</a
+  >
+
+  <form
+    method="GET"
+    action="/history"
+    style="flex: 1; display: flex; gap: 8px; align-items: center"
+  >
+    <input type="hidden" name="filter" value="{{ filter_type }}" />
+    <input
+      class="search-in"
+      type="text"
+      name="q"
+      placeholder="Tìm kiếm nội dung..."
+      value="{{ search }}"
+      id="searchInput"
+    />
+  </form>
+
+  <div class="export-btns-row">
+    <a
+      class="tb-btn ghost"
+      style="font-size: 11px"
+      href="/history/export?filter={{ filter_type }}&q={{ search }}"
+      >↓ CSV</a
+    >
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card fade-up-2">
+  <div class="card-body no-pad">
+    {% if rows %}
+    <table class="activity-table" id="historyTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nội dung</th>
+          <th>Nhãn</th>
+          <th>Conf.</th>
+          <th>Feedback</th>
+          <th>Nguồn</th>
+          <th>Thời gian</th>
+          <th>Bookmark</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %} {# row: id, text, prediction_label, confidence,
+        user_feedback, is_bookmarked, source_type, timestamp #} {% set is_fake =
+        'Tin giả' in row[2] %}
+        <tr>
+          <td
+            style="
+              font-family: var(--mono);
+              font-size: 11px;
+              color: var(--text3);
+            "
+          >
+            {{ row[0] }}
+          </td>
+          <td class="td-text-cell">
+            <div class="td-snippet" title="{{ row[1] }}">
+              {{ row[1][:100] if row[1] else '—' }}
+            </div>
+          </td>
+          <td>
+            <span class="verdict-pill {{ 'fake' if is_fake else 'real' }}">
+              <span class="vpill-dot"></span>
+              {{ 'Giả' if is_fake else 'Thật' }}
+            </span>
+          </td>
+          <td class="td-conf">
+            {{ "%.1f"|format(row[3]) }}%
+            <div class="conf-bar">
+              <div
+                class="conf-fill {{ 'fake' if is_fake else 'real' }}"
+                style="width:{{ row[3] }}%"
+              ></div>
+            </div>
+          </td>
+          <td>
+            {% if row[4] == 'Đúng' %}
+            <span class="fb-chip correct">✓ Đúng</span>
+            {% elif row[4] == 'Sai' %}
+            <span class="fb-chip incorrect">✗ Sai</span>
+            {% else %}
+            <span class="fb-chip pending">—</span>
+            {% endif %}
+          </td>
+          <td
+            class="td-time"
+            style="text-transform: uppercase; letter-spacing: 0.04em"
+          >
+            {{ row[6] or 'text' }}
+          </td>
+          <td class="td-time">{{ row[7][:16] if row[7] else '—' }}</td>
+          <td>
+            <button
+              class="bk-btn {% if row[5] %}active{% endif %}"
+              id="bk-{{ row[0] }}"
+              onclick="toggleBookmark({{ row[0] }}, this)"
+              title="{{ 'Bỏ bookmark' if row[5] else 'Thêm bookmark' }}"
+            >
+              {{ '⭐' if row[5] else '☆' }}
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div
+      style="
+        padding: 48px;
+        text-align: center;
+        color: var(--text3);
+        font-size: 13px;
+      "
+    >
+      {% if search %} Không tìm thấy kết quả cho "<span
+        style="color: var(--text)"
+        >{{ search }}</span
+      >". {% else %} Chưa có lịch sử kiểm tra.
+      <a
+        href="/predict"
+        style="color: var(--accent); display: block; margin-top: 8px"
+      >
+        Bắt đầu kiểm tra ngay →
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Pagination + count -->
+<div
+  style="
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+  "
+>
+  <span style="font-family: var(--mono); font-size: 11px; color: var(--text3)">
+    {{ total_count }} kết quả · trang {{ page }}/{{ total_pages }}
+  </span>
+
+  {% if total_pages > 1 %}
+  <div class="pagination">
+    <a
+      class="pg-btn {% if page <= 1 %}disabled{% endif %}"
+      href="/history?filter={{ filter_type }}&q={{ search }}&page={{ page - 1 }}"
+      >← Trước</a
+    >
+
+    {% for p in range(1, total_pages + 1) %} {% if p == page %}
+    <span class="pg-btn active">{{ p }}</span>
+    {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+    <a
+      class="pg-btn"
+      href="/history?filter={{ filter_type }}&q={{ search }}&page={{ p }}"
+      >{{ p }}</a
+    >
+    {% elif p == page - 3 or p == page + 3 %}
+    <span style="color: var(--text3); font-size: 11px; padding: 0 2px">…</span>
+    {% endif %} {% endfor %}
+
+    <a
+      class="pg-btn {% if page >= total_pages %}disabled{% endif %}"
+      href="/history?filter={{ filter_type }}&q={{ search }}&page={{ page + 1 }}"
+      >Sau →</a
+    >
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  // ── Bookmark toggle ──
+  async function toggleBookmark(id, btn) {
+    try {
+      const resp = await fetch("/bookmark", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const data = await resp.json();
+      if (data.success) {
+        btn.textContent = data.is_bookmarked ? "⭐" : "☆";
+        btn.classList.toggle("active", data.is_bookmarked);
+        btn.title = data.is_bookmarked ? "Bỏ bookmark" : "Thêm bookmark";
+      }
+    } catch (e) {}
+  }
+
+  // ── Live search with debounce ──
+  let searchTimer;
+  document.getElementById("searchInput").addEventListener("input", function () {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      params.set("q", this.value);
+      params.set("page", 1);
+      window.location.search = params.toString();
+    }, 500);
+  });
+</script>
+{% endblock %}

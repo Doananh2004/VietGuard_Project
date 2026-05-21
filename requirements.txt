@@ -1,51 +1,41 @@
 # =========================
-# Core Deep Learning
+# Web Server & API
+# =========================
+flask
+waitress
+requests
+
+# =========================
+# Core Deep Learning (Inference)
 # =========================
 torch
 transformers
-datasets
-accelerate
 
 # =========================
-# Machine Learning
-# =========================
-scikit-learn
-numpy
-pandas
-scipy
-
-# =========================
-# NLP
+# NLP & Explainable AI
 # =========================
 underthesea
+lime
+beautifulsoup4
+python-docx
+regex
+
+# =========================
+# Data Science & Training
+# =========================
+numpy
+pandas
+scikit-learn
+scipy
+datasets
+accelerate
 gensim
 
 # =========================
-# Flask Web App
-# =========================
-flask
-flask-ngrok
-
-# =========================
-# Visualization / EDA
+# Visualization & Notebooks (Optional)
 # =========================
 matplotlib
 seaborn
 wordcloud
-
-# =========================
-# Utilities
-# =========================
-tqdm
-regex
-
-# =========================
-# Translation (nếu dùng)
-# =========================
-deep-translator
-
-# =========================
-# Jupyter / Colab
-# =========================
 notebook
 ipykernel

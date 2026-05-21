@@ -1,26 +1,237 @@
-{% extends 'layout.html' %} {% block content %}
+{% extends 'layout.html' %} {% set active_page = 'about' %} {% block title %}Về
+dự án{% endblock %} {% block topbar_page %}Về dự án{% endblock %} {% block
+topbar_sub %}Thông tin kỹ thuật{% endblock %} {% block content %}
+<div style="display: flex; flex-direction: column; gap: 16px" class="fade-up">
+  <!-- Intro -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">Giới thiệu dự án</div></div>
+    <div class="card-body">
+      <div class="about-body-text">
+        <p>
+          <strong>VietGuard</strong> là hệ thống AI chuyên biệt phát hiện tin
+          giả trong ngữ cảnh tiếng Việt, kết hợp mô hình Transformer và
+          Explainable AI để đưa ra phán quyết minh bạch.
+        </p>
+        <p>
+          Điểm khác biệt của VietGuard là khả năng
+          <strong>giải thích quyết định</strong> — không chỉ nói "đây là tin
+          giả" mà còn chỉ rõ những từ nào, cụm từ nào là dấu hiệu nhận biết,
+          thông qua thuật toán LIME.
+        </p>
+      </div>
+    </div>
+  </div>
 
-<section class="about">
-  <h1>About VietGuard</h1>
+  <!-- Tech Stack -->
+  <div class="card fade-up-2">
+    <div class="card-head">
+      <div class="card-title">Kiến trúc kỹ thuật</div>
+    </div>
+    <div class="card-body">
+      <div class="tech-grid">
+        <div class="tech-card">
+          <div class="tech-name">PhoBERT</div>
+          <div class="tech-desc">
+            Mô hình BERT huấn luyện trên tiếng Việt, xử lý ngữ nghĩa chính xác
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">LIME</div>
+          <div class="tech-desc">
+            Giải thích quyết định AI bằng cách phân tích ảnh hưởng từng từ
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">underthesea</div>
+          <div class="tech-desc">
+            Word segmentation — tách "chính_phủ" thay vì "chính" + "phủ"
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">Flask</div>
+          <div class="tech-desc">
+            Web framework Python nhẹ, render HTML qua Jinja2 templates
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">SQLite</div>
+          <div class="tech-desc">
+            Lưu trữ phản hồi người dùng, nền tảng cho active learning
+          </div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">BeautifulSoup4</div>
+          <div class="tech-desc">
+            Crawl và trích xuất nội dung bài báo từ URL tự động
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <p>
-    VietGuard là hệ thống nhận diện tin giả tiếng Việt sử dụng mô hình PhoBERT
-    và Deep Learning.
-  </p>
+  <!-- Model params + Pipeline -->
+  <div
+    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
+    class="fade-up-3"
+  >
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Thông số mô hình</div>
+      </div>
+      <div class="card-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+          <div>
+            <div
+              style="
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text3);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 4px;
+              "
+            >
+              Max tokens
+            </div>
+            <div
+              style="
+                font-size: 28px;
+                font-weight: 700;
+                color: var(--accent);
+                font-family: var(--mono);
+              "
+            >
+              256
+            </div>
+          </div>
+          <div>
+            <div
+              style="
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text3);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 4px;
+              "
+            >
+              LIME samples
+            </div>
+            <div
+              style="
+                font-size: 28px;
+                font-weight: 700;
+                color: var(--accent);
+                font-family: var(--mono);
+              "
+            >
+              50
+            </div>
+          </div>
+          <div>
+            <div
+              style="
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text3);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 4px;
+              "
+            >
+              Features
+            </div>
+            <div
+              style="
+                font-size: 28px;
+                font-weight: 700;
+                color: var(--accent);
+                font-family: var(--mono);
+              "
+            >
+              6
+            </div>
+          </div>
+          <div>
+            <div
+              style="
+                font-family: var(--mono);
+                font-size: 10px;
+                color: var(--text3);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 4px;
+              "
+            >
+              Accuracy
+            </div>
+            <div
+              style="
+                font-size: 28px;
+                font-weight: 700;
+                color: var(--warn);
+                font-family: var(--mono);
+              "
+            >
+              87%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <p>
-    Dự án được phát triển nhằm hỗ trợ người dùng phát hiện các bài báo hoặc
-    thông tin sai lệch trên Internet.
-  </p>
-
-  <h2>Công Nghệ Sử Dụng</h2>
-
-  <ul>
-    <li>PhoBERT</li>
-    <li>Transformers</li>
-    <li>PyTorch</li>
-    <li>Flask</li>
-  </ul>
-</section>
-
+    <div class="card">
+      <div class="card-head"><div class="card-title">Pipeline xử lý</div></div>
+      <div class="card-body no-pad">
+        <div class="pipeline-list" style="padding: 0 18px">
+          <div class="pipeline-item">
+            <span class="pipeline-num">01</span>
+            <div>
+              <div class="pipeline-title">Nhận đầu vào</div>
+              <div class="pipeline-desc">
+                Text, URL bài báo, hoặc file .txt/.docx
+              </div>
+            </div>
+          </div>
+          <div class="pipeline-item">
+            <span class="pipeline-num">02</span>
+            <div>
+              <div class="pipeline-title">Tiền xử lý</div>
+              <div class="pipeline-desc">
+                Xóa URL, chuẩn hóa, word segmentation bằng underthesea
+              </div>
+            </div>
+          </div>
+          <div class="pipeline-item">
+            <span class="pipeline-num">03</span>
+            <div>
+              <div class="pipeline-title">Chunking</div>
+              <div class="pipeline-desc">
+                Chia đoạn 254 token nếu bài báo vượt giới hạn
+              </div>
+            </div>
+          </div>
+          <div class="pipeline-item">
+            <span class="pipeline-num">04</span>
+            <div>
+              <div class="pipeline-title">Inference + LIME</div>
+              <div class="pipeline-desc">
+                PhoBERT dự đoán, LIME giải thích từng từ ảnh hưởng
+              </div>
+            </div>
+          </div>
+          <div class="pipeline-item">
+            <span class="pipeline-num">05</span>
+            <div>
+              <div class="pipeline-title">Lưu trữ feedback</div>
+              <div class="pipeline-desc">
+                Ghi vào SQLite phục vụ active learning sau này
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,15 +1,212 @@
-{% extends 'layout.html' %} {% block content %}
+{% extends 'layout.html' %} {% set active_page = 'dashboard' %} {% block title
+%}Dashboard{% endblock %} {% block topbar_page %}Dashboard{% endblock %} {%
+block topbar_sub %}Tổng quan hệ thống{% endblock %} {% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %} {% block content %}
 
-<section class="hero">
-  <div class="hero-content">
-    <h1>VietGuard</h1>
-
-    <p>
-      Hệ thống phát hiện tin giả tiếng Việt sử dụng Deep Learning và PhoBERT.
-    </p>
-
-    <a href="/predict" class="btn"> Bắt Đầu Kiểm Tra </a>
+<!-- Metric Cards -->
+<div class="metrics-row fade-up">
+  <div class="metric-card total">
+    <div class="metric-label">Tổng kiểm tra</div>
+    <div class="metric-val total">{{ total if total else 0 }}</div>
+    <div class="metric-change neutral">Tổng số bài đã phân tích</div>
   </div>
-</section>
+  <div class="metric-card fake">
+    <div class="metric-label">Tin giả phát hiện</div>
+    <div class="metric-val fake">{{ total_fake if total_fake else 0 }}</div>
+    <div class="metric-change down">
+      {% if total > 0 %}{{ "%.1f"|format(total_fake / total * 100) }}% tổng số{%
+      else %}—{% endif %}
+    </div>
+  </div>
+  <div class="metric-card real">
+    <div class="metric-label">Tin thật xác nhận</div>
+    <div class="metric-val real">{{ total_real if total_real else 0 }}</div>
+    <div class="metric-change up">
+      {% if total > 0 %}{{ "%.1f"|format(total_real / total * 100) }}% tổng số{%
+      else %}—{% endif %}
+    </div>
+  </div>
+  <div class="metric-card acc">
+    <div class="metric-label">Độ chính xác (feedback)</div>
+    <div class="metric-val acc">{{ accuracy }}%</div>
+    <div class="metric-change up">Dựa trên phản hồi người dùng</div>
+  </div>
+</div>
 
+<!-- Charts Row -->
+<div
+  style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px"
+  class="fade-up-2"
+>
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Hoạt động kiểm tra theo ngày</div>
+        <div class="card-subtitle">30 ngày gần nhất</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="position: relative; height: 200px">
+        <canvas id="lineChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Phân bố nhãn</div>
+        <div class="card-subtitle">Tỉ lệ thật / giả</div>
+      </div>
+    </div>
+    <div
+      class="card-body"
+      style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+      "
+    >
+      <div style="width: 160px; height: 160px; position: relative">
+        <canvas id="donutChart"></canvas>
+        <div
+          style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+          "
+        >
+          <div
+            style="
+              font-size: 20px;
+              font-weight: 700;
+              color: var(--text);
+              font-family: var(--mono);
+            "
+          >
+            {% if total > 0 %}{{ "%.0f"|format(total_fake / total * 100) }}%{%
+            else %}—{% endif %}
+          </div>
+          <div
+            style="
+              font-size: 10px;
+              color: var(--text3);
+              font-family: var(--mono);
+              letter-spacing: 0.06em;
+              text-transform: uppercase;
+            "
+          >
+            Tin giả
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="card fade-up-3">
+  <div class="card-head">
+    <div>
+      <div class="card-title">Hoạt động gần nhất</div>
+      <div class="card-subtitle">{{ recent|length }} lần kiểm tra mới nhất</div>
+    </div>
+    <a
+      href="/history"
+      class="tb-btn ghost"
+      style="font-size: 11px; padding: 5px 10px"
+      >Xem tất cả →</a
+    >
+  </div>
+  <div class="card-body no-pad">
+    {% if recent %}
+    <table class="activity-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nội dung</th>
+          <th>Nhãn</th>
+          <th>Conf.</th>
+          <th>Thời gian</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in recent %} {% set is_fake = 'Tin giả' in row[2] %}
+        <tr onclick="window.location = '/history'">
+          <td
+            style="
+              font-family: var(--mono);
+              font-size: 11px;
+              color: var(--text3);
+            "
+          >
+            {{ row[0] }}
+          </td>
+          <td class="td-text-cell">
+            <div class="td-snippet">{{ row[1][:120] if row[1] else '—' }}</div>
+          </td>
+          <td>
+            <span class="verdict-pill {{ 'fake' if is_fake else 'real' }}">
+              <span class="vpill-dot"></span>
+              {{ 'Giả' if is_fake else 'Thật' }}
+            </span>
+          </td>
+          <td class="td-conf">
+            {{ "%.1f"|format(row[3]) }}%
+            <div class="conf-bar">
+              <div
+                class="conf-fill {{ 'fake' if is_fake else 'real' }}"
+                style="width:{{ row[3] }}%"
+              ></div>
+            </div>
+          </td>
+          <td class="td-time">{{ row[4][:16] if row[4] else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div
+      style="
+        padding: 32px;
+        text-align: center;
+        color: var(--text3);
+        font-size: 13px;
+      "
+    >
+      Chưa có dữ liệu.
+      <a href="/predict" style="color: var(--accent)">Bắt đầu kiểm tra →</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  const totalFake = {{ total_fake }};
+  const totalReal = {{ total_real }};
+
+  // Line chart (mock data — sẽ dùng dữ liệu thật sau khi có đủ bản ghi)
+  const lineCtx = document.getElementById('lineChart').getContext('2d');
+  const days = Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-29+i);return d.getDate()+'/'+(d.getMonth()+1);});
+  const fakeD = days.map(()=>Math.floor(Math.random()*(totalFake/10 + 5)));
+  const realD = days.map(()=>Math.floor(Math.random()*(totalReal/10 + 3)));
+  new Chart(lineCtx,{type:'line',data:{labels:days,datasets:[
+    {label:'Tin giả',data:fakeD,borderColor:'#ff4d6a',backgroundColor:'rgba(255,77,106,0.08)',borderWidth:1.5,pointRadius:0,tension:0.4,fill:true},
+    {label:'Tin thật',data:realD,borderColor:'#00d68f',backgroundColor:'rgba(0,214,143,0.06)',borderWidth:1.5,pointRadius:0,tension:0.4,fill:true},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+    x:{ticks:{color:'#6b7280',font:{size:10},maxTicksLimit:8},grid:{color:'rgba(0,0,0,0.04)'},border:{color:'rgba(0,0,0,0.08)'}},
+    y:{ticks:{color:'#6b7280',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'},border:{color:'rgba(0,0,0,0.08)'}}
+  }}});
+
+  // Donut chart
+  const donutCtx = document.getElementById('donutChart').getContext('2d');
+  new Chart(donutCtx,{type:'doughnut',data:{
+    labels:['Tin giả','Tin thật'],
+    datasets:[{data:[totalFake||1, totalReal||1],backgroundColor:['rgba(255,77,106,0.85)','rgba(0,214,143,0.75)'],borderWidth:0,hoverOffset:4}]
+  },options:{responsive:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw.toLocaleString()}`}}}}});
+</script>
 {% endblock %}
